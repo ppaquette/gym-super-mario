@@ -690,6 +690,14 @@ function parse_commands(line)
         reset_vars();
         emu.softreset();
 
+    -- Reset current level
+    elseif ("reset" == command) then
+        is_started = 0;
+        is_finished = 0;
+        changing_level = 0;
+        reset_vars();
+        emu.softreset();
+
     -- Exiting
     elseif "exit" == command then
         close_pipes();
@@ -856,12 +864,8 @@ function main_loop()
     if (1 == is_finished) then
         if 0 == meta then
             -- Single Mission
-            for i=1,20,1 do         -- Gives python a couple of ms to process it
-                emu.frameadvance();
-            end
-            write_to_pipe("exit");  -- Sends exit
-            close_pipes();
-            os.exit();
+            -- Not closing pipes, waiting for reset or exit to reset level, or close fceux
+            read_commands();
 
         elseif 0 == changing_level then
             -- Meta mission - Sending level change required

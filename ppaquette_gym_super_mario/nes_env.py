@@ -233,6 +233,10 @@ class NesEnv(gym.Env, utils.EzPickle):
             self.is_initialized = 0
             raise gym.error.Error('Unable to start fceux. Command: %s' % (' '.join(args)))
 
+    def _reset_fceux(self):
+        # Resets the current level in fceux (without opening new pipes)
+        self._write_to_pipe('reset')
+
     def _reset_info_vars(self):
         # Overridable - To reset the information variables
         self.info = {}
@@ -338,18 +342,19 @@ class NesEnv(gym.Env, utils.EzPickle):
         return state, reward, is_finished, info
 
     def _reset(self):
-        if 1 == self.is_initialized:
-            self.close()
         self.last_frame = 0
         self.reward = 0
         self.episode_reward = 0
         self.is_finished = False
         self.first_step = True
         self._reset_info_vars()
-        with self.lock:
-            self._launch_fceux()
-            self._closed = False
-            self._start_episode()
+        if 1 == self.is_initialized:
+            self._reset_fceux()
+        else:
+            with self.lock:
+                self._launch_fceux()
+                self._closed = False
+        self._start_episode()
         self.screen = np.zeros(shape=(self.screen_height, self.screen_width, 3), dtype=np.uint8)
         return self._get_state()
 
