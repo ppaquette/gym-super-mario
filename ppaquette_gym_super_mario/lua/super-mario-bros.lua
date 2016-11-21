@@ -10,6 +10,7 @@
 -- draw_tiles = "1";
 -- meta = "0"               -- meta indicates multiple mission
 -- pipe_name = "abc";
+-- pipe_prefix = "/tmp/smb-fifo";
 
 -- ** Loading main lua file **
 -- f = assert (loadfile ("path_to_main_lua_file"));
@@ -24,6 +25,7 @@ mode = mode or "algo";
 draw_tiles = tonumber(draw_tiles) or 0;
 meta = tonumber(meta) or 0;
 pipe_name = pipe_name or "";
+pipe_prefix = pipe_prefix or "";
 
 -- Parsing world
 if target then
@@ -555,7 +557,7 @@ function check_if_started()
         if (last_time_left > time_left) then
             is_started = 1;
             last_time_left = 0;
-            pipe_out, _, _ = io.open("/tmp/smb-fifo-in." .. pipe_name, "w");
+            pipe_out, _, _ = io.open(pipe_prefix .. "-in." .. pipe_name, "w");
             write_to_pipe("ready_" .. emu.framecount());
             force_refresh = 5;  -- Sending full screen for next 5 frames, then only diffs
             update_positions();
@@ -701,8 +703,8 @@ end;
 function open_pipes()
     local _;
     if pipe_name ~= "" and mode ~= "human" then
-        pipe_out, _, _ = io.open("/tmp/smb-fifo-in." .. pipe_name, "w");
-        pipe_in, _, _ = io.open("/tmp/smb-fifo-out." .. pipe_name, "r");
+        pipe_out, _, _ = io.open(pipe_prefix .. "-in." .. pipe_name, "w");
+        pipe_in, _, _ = io.open(pipe_prefix .. "-out." .. pipe_name, "r");
     end;
     return;
 end;

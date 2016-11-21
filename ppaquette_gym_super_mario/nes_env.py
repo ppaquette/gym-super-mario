@@ -56,6 +56,7 @@ class NesEnv(gym.Env, utils.EzPickle):
 
         # Pipes
         self.pipe_name = ''
+        self.path_pipe_prefix = os.path.join(tempfile.gettempdir(), 'smb-fifo')
         self.path_pipe_in = ''      # Input pipe (maps to fceux out-pipe and to 'in' file)
         self.path_pipe_out = ''     # Output pipe (maps to fceux in-pipe and to 'out' file)
         self.pipe_out = None
@@ -63,6 +64,7 @@ class NesEnv(gym.Env, utils.EzPickle):
         self.disable_in_pipe = False
         self.disable_out_pipe = False
         self.launch_vars['pipe_name'] = ''
+        self.launch_vars['pipe_prefix'] = self.path_pipe_prefix
 
         # Other vars
         self.is_initialized = 0     # Used to indicate fceux has been launched and is running
@@ -93,7 +95,7 @@ class NesEnv(gym.Env, utils.EzPickle):
         self.pipe_name = seeding.hash_seed(None) % 2 ** 32
         self.launch_vars['pipe_name'] = self.pipe_name
         if not self.disable_out_pipe:
-            self.path_pipe_out = os.path.join(tempfile.gettempdir(), 'smb-fifo-out.%d' % self.pipe_name)
+            self.path_pipe_out = '%s-out.%d' % (self.path_pipe_prefix, self.pipe_name)
             os.mkfifo(self.path_pipe_out)
 
         # Launching a thread that will listen to incoming pipe
@@ -143,7 +145,7 @@ class NesEnv(gym.Env, utils.EzPickle):
 
     def _listen_to_incoming_pipe(self, pipe_name):
         # Listens to incoming messages
-        self.path_pipe_in = os.path.join(tempfile.gettempdir(), 'smb-fifo-in.%d' % pipe_name)
+        self.path_pipe_in = '%s-in.%d' % (self.path_pipe_prefix, self.pipe_name)
         if not os.path.exists(self.path_pipe_in):
             os.mkfifo(self.path_pipe_in)
         try:
