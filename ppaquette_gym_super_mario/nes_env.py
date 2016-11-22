@@ -160,7 +160,10 @@ class NesEnv(gym.Env, utils.EzPickle):
             if len(message) > 0:
                 buffer += message
                 if message[-1:-2:-1] == '!':
-                    self._process_pipe_message(buffer[:-1])
+                    try:
+                        self._process_pipe_message(buffer[:-1])
+                    except:
+                        pass
                     if 'exit' == buffer[-5:-1]:
                         break
                     buffer = ''
