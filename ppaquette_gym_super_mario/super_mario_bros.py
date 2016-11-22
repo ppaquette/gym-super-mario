@@ -24,6 +24,20 @@ SMB_LEVELS = [
     (8, 1, 1, 6114), (8, 2, 2, 3554), (8, 3, 3, 3554), (8, 4, 4, 4989)]
 SUPER_MARIO_ROM_PATH = os.path.join(os.path.dirname(__file__), 'roms', 'super-mario.nes')
 
+# --------------
+# Helper Methods
+# --------------
+def is_int16(str):
+    try:
+        int(str, 16)
+        return True
+    except ValueError:
+        return False
+
+
+# --------------
+# Classes
+# --------------
 class SuperMarioBrosEnv(NesEnv):
     def __init__(self, draw_tiles=False, level=0):
         NesEnv.__init__(self)
@@ -104,7 +118,7 @@ class SuperMarioBrosEnv(NesEnv):
             return
         parts = data.split('|')
         for part in parts:
-            if 6 == len(part):
+            if 6 == len(part) and is_int16(part[0:2]) and is_int16(part[2:4]):
                 x = int(part[0:2], 16)
                 y = int(part[2:4], 16)
                 self.screen[y][x] = self._get_rgb_from_palette(part[4:6])
@@ -115,7 +129,7 @@ class SuperMarioBrosEnv(NesEnv):
             return
         parts = data.split('|')
         for part in parts:
-            if 3 == len(part):
+            if 3 == len(part) and is_int16(part[0:1]) and is_int16(part[1:2]) and is_int16(part[2:3]):
                 x = int(part[0:1], 16)
                 y = int(part[1:2], 16)
                 v = int(part[2:3], 16)
