@@ -135,6 +135,7 @@ addr_curr_page = 0x6d;
 addr_curr_x = 0x86;
 addr_curr_y = 0x03b8;
 addr_left_x = 0x071c;
+addr_y_viewport = 0x00b5;
 addr_player_state = 0x000e;     -- x06 dies, x0b dying
 addr_player_status = 0x0756;    -- 0 = small, 1 = big, 2+ = fiery
 addr_enemy_page = 0x6e;
@@ -263,6 +264,12 @@ function get_y_position()
     return memory.readbyte(addr_curr_y);
 end;
 
+-- get_y_viewport - Returns the current y viewport
+-- 1 = in visible viewport, 0 = above viewport, > 1 below viewport (i.e. dead)
+function get_y_viewport()
+    return memory.readbyte(addr_y_viewport);
+end;
+
 -- update_positions - Update x and y position variables
 function update_positions()
     curr_x_position = get_x_position();
@@ -274,7 +281,8 @@ end;
 -- 0x06 means dead, 0x0b means dying
 function get_is_dead()
     local player_state = memory.readbyte(addr_player_state);
-    if (player_state == 0x06) or (player_state == 0x0b) then
+    local y_viewport = get_y_viewport();
+    if (player_state == 0x06) or (player_state == 0x0b) or (y_viewport > 1) then
         return 1;
     else
         return 0;
@@ -461,6 +469,7 @@ function get_tiles()
     
     local enemies = get_enemies();
     local left_x = get_left_x_position();
+    local y_viewport = get_y_viewport();
     local framecount = emu.framecount();
     
     -- Outside box (80 x 65 px)
@@ -506,7 +515,7 @@ function get_tiles()
             -- +3 = Mario
             local dist_x = math.abs(curr_x_position - (curr_x_position + box_x - left_x + 108));
             local dist_y = math.abs(curr_y_position - (80 + box_y));
-            if (dist_x <= 8) and (dist_y <= 8) then
+            if (y_viewport == 1) and (dist_x <= 8) and (dist_y <= 8) then
                 tile_value = 3;
                 color = "P05"; -- Red (NES Palette 05 color)
                 fill = color;
