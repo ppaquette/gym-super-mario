@@ -236,7 +236,11 @@ end;
 
 -- get_life - Returns the number of remaining lives
 function get_life()
-    return memory.readbyte(addr_life) + 1;
+    local life = memory.readbyte(addr_life) + 1;
+    if (get_is_dead() == 1) then
+        life = 0;
+    end;
+    return life;
 end;
 
 -- get_score - Returns the current player score (0 to 999990)
