@@ -433,8 +433,8 @@ end;
 -- Palette is a number from 0 to 127 that represents an RGB color (conversion table in python file)
 function get_screen()
 
-    -- Skipping screen is skip_screen is set
-    if skip_screen == 1 then
+    -- Skipping screen is skip_screen is set or draw_tiles if set
+    if (skip_screen == 1) or (draw_tiles == 1) then
         return;
     end;
 

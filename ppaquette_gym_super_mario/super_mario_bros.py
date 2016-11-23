@@ -58,6 +58,8 @@ class SuperMarioBrosEnv(NesEnv):
         if 1 == self.draw_tiles:
             self.tile_height = 13
             self.tile_width = 16
+            self.screen_height = 13
+            self.screen_width = 16
             self.tiles = np.zeros(shape=(self.tile_height, self.tile_width), dtype=np.uint8)
             self.observation_space = spaces.Box(low=0, high=3, shape=(self.tile_height, self.tile_width))
 
@@ -134,6 +136,10 @@ class SuperMarioBrosEnv(NesEnv):
                 y = int(part[1:2], 16)
                 v = int(part[2:3], 16)
                 self.tiles[y][x] = v
+                if v == 0: self.screen[y][x] = self._get_rgb_from_palette('0D')
+                if v == 1: self.screen[y][x] = self._get_rgb_from_palette('30')
+                if v == 2: self.screen[y][x] = self._get_rgb_from_palette('27')
+                if v == 3: self.screen[y][x] = self._get_rgb_from_palette('05')
 
     def _process_ready_message(self, frame_number):
         # Format: ready_<frame>
