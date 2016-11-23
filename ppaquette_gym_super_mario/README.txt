@@ -72,7 +72,7 @@ Variables:
     - The following variables are available in the info dict
 
         - distance        # Total distance from the start (x-axis)
-        - life            # Number of lives Mario has (should always be 3)
+        - life            # Number of lives Mario has (3 if Mario is alive, 0 is Mario is dead)
         - score           # The current score
         - coins           # The current number of coins
         - time            # The current time left
