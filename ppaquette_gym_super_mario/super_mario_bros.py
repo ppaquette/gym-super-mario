@@ -242,7 +242,8 @@ class SuperMarioBrosEnv(NesEnv):
             'score': -1,
             'coins': -1,
             'time': -1,
-            'player_status': -1
+            'player_status': -1,
+            'iteration': -1
         }
 
 

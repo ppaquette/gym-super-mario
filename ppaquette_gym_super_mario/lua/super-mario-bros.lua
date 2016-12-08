@@ -45,7 +45,7 @@ end;
 is_started = 0;             -- Indicates that the timer has started to decrease (i.e. commands can now be processed)
 is_finished = 0;            -- Indicates a life has been lost, world has changed, or finish line crossed
 last_time_left = 0;         -- Indicates the last time left (to check if timer has started to decrease)
-skip_frames = 2;            -- Process a frame every 2 frames (usually 60 fps, by not returning 50% of the frames, we get ~30fps)
+skip_frames = 6;            -- Process a frame every 2 frames (usually 60 fps, by not returning 50% of the frames, we get ~30fps)
 skip_screen = 0;            -- Does not send screen data to pipe (e.g. human mode)
 skip_data = 0;              -- Does not send data to pipe (e.g. human mode)
 skip_tiles = 0;             -- Does not send tiles to pipe (e.g. human mode)
@@ -65,6 +65,8 @@ pipe_in = nil;              -- Input named pipe
 pipe_out = nil;             -- Output named pipe
 running_thread = 0;         -- To avoid 2 threads running at the same time
 commands_rcvd = 0;          -- To indicate that commands were received
+gamestate = nil;            -- Game state to resume to (to skip intro)
+iteration = 0;              -- Current iteration number
 
 -- Max distances
 distances = {};
@@ -156,7 +158,7 @@ function reset_vars()
             screen[x][y] = -1;
         end;
     end;
-    local data_var = { "distance", "life", "score", "coins", "time", "player_status", "is_finished" };
+    local data_var = { "distance", "life", "score", "coins", "time", "player_status", "is_finished", "iteration" };
     for i=1,#data_var do
         data[data_var[i]] = -1;
     end;
@@ -177,6 +179,7 @@ function reset_vars()
     curr_y_position = 0;
     last_processed_frame = 0;
     max_distance = distances[target] or 0;
+    iteration = iteration + 1;
 end;
 
 -- round - Rounds a number to precision level
@@ -415,13 +418,14 @@ function get_data()
         data_string = data_string .. "|is_finished:" .. is_finished;
         data_count = data_count + 1;
     end;
-    
+    if (framecount % send_all_pixels == 0) or (iteration ~= data["iteration"]) or (force_refresh > 0) then
+        data["iteration"] = iteration;
+        data_string = data_string .. "|iteration:" .. iteration;
+        data_count = data_count + 1;
+    end;
+
     -- Removing leading "|" if data has changed, otherwise not returning anything
     if data_count > 0 then
-        if is_finished == 1 then
-            -- Indicates to the listening thread to also exit after parsing command
-            data_string = data_string .. "|exit";
-        end;
         write_to_pipe("data_" .. framecount .. "#" .. string.sub(data_string, 2, -1));
     end;
     return;
@@ -577,6 +581,7 @@ function check_if_started()
             show_curr_distance();
             get_tiles();
             get_data();
+            gamestate = savestate.object();
             -- get_screen();    -- Was blocking execution
             ask_for_commands();
         else
@@ -597,12 +602,14 @@ function check_if_finished()
         -- Level finished
         -- is_finished will be written to pipe with the get_data() function
         is_started = 0;
-        is_finished = 1;
+        -- is_finished = 1;
 
         -- Processing manually last command
         read_commands();
         if commands_rcvd == 1 then
             commands_rcvd = 0
+            savestate.load(gamestate);
+            reset_vars();
             emu.frameadvance();
             update_positions();
             show_curr_distance();
@@ -768,9 +775,15 @@ function hook_set_area()
         memory.writebyte(addr_area, (target_area - 1));
     end;
 end;
+function hook_set_life()
+    if memory.readbyte(addr_life) ~= 0x08 then
+        memory.writebyte(addr_life, 0x08);
+    end;
+end;
 memory.registerwrite(addr_world, hook_set_world);
 memory.registerwrite(addr_level, hook_set_level);
 memory.registerwrite(addr_area, hook_set_area);
+memory.registerwrite(addr_life, hook_set_life);
 
 function exit_hook()
     write_to_pipe("exit");
@@ -782,13 +795,7 @@ emu.registerexit(exit_hook);
 --      ** DEBUG **
 -- ===========================
 -- Functions used to debug levels (you will be an invincible swimmer with unlimited lives)
--- function hook_set_life()
---     if memory.readbyte(addr_life) ~= 0x08 then
---         memory.writebyte(addr_life, 0x08);
---     end;
--- end;
--- memory.registerwrite(addr_life, hook_set_life);
--- 
+--
 -- function hook_set_invincibility()
 --     if memory.readbyte(addr_injury_timer) ~= 0x08 then
 --         memory.writebyte(addr_injury_timer, 0x08);
