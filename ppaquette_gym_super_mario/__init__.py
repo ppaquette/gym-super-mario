@@ -23,7 +23,7 @@ for draw_tiles in range(2):
     register(
         id='{}/meta-SuperMarioBros{}-v0'.format(USERNAME, tile_suffix),
         entry_point='{}_gym_super_mario:MetaSuperMarioBrosEnv'.format(USERNAME),
-        timestep_limit=9999999,
+        max_episode_steps=9999999,
         reward_threshold=32000,
         kwargs={ 'draw_tiles': draw_tiles, 'average_over': 3, 'passing_grade': 600, 'min_tries_for_avg': 3 },
         nondeterministic=True,
@@ -34,7 +34,7 @@ for draw_tiles in range(2):
         register(
             id='{}/SuperMarioBros-{}-{}{}-v0'.format(USERNAME, world_number, level_number, tile_suffix),
             entry_point='{}_gym_super_mario:SuperMarioBrosEnv'.format(USERNAME),
-            timestep_limit=10000,
+            max_episode_steps=10000,
             reward_threshold=(max_distance - 40),
             kwargs={ 'draw_tiles': draw_tiles, 'level': level },
             # Seems to be non-deterministic about 5% of the time

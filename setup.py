@@ -17,5 +17,5 @@ setup(name='{}_{}'.format(USERNAME, 'gym_super_mario'),
     packages=[package for package in find_packages() if package.startswith(USERNAME)],
     package_data={ '{}_{}'.format(USERNAME, 'gym_super_mario'): ['lua/*.lua', 'roms/*.nes' ] },
     zip_safe=False,
-    install_requires=[ 'gym>=0.2.3' ],
+    install_requires=[ 'gym>=0.8.0' ],
 )
